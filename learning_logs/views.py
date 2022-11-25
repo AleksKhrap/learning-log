@@ -97,3 +97,11 @@ def check_topic_owner(request, topic):
     """Проверяет, что тема принадлежит текущему пользователю"""
     if topic.owner != request.user:
         raise Http404
+
+
+def error_404(request, exception):
+    return render(request, 'learning_logs/404.html')
+
+
+def error_500(request, exception=None):
+    return render(request, 'learning_logs/500.html')
