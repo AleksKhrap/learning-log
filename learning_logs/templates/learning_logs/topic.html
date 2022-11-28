@@ -13,7 +13,9 @@
     <div class="card mb-3">
       <h4 class="card-header">
         {{ entry.date_added|date:'M d, Y H:i' }}
-        <small><a href="{% url 'learning_logs:edit_entry' entry.id %}">Edit entry</a></small>
+        {% if user.is_authenticated %}
+          <small><a href="{% url 'learning_logs:edit_entry' entry.id %}">Edit entry</a></small>
+        {% endif %}
       </h4>
       <div class="card-body">
         {{ entry.text|linebreaks }}

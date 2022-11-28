@@ -10,19 +10,22 @@ def index(request):
     return render(request, 'learning_logs/index.html')
 
 
-@login_required
 def topics(request):
     """Выводит список тем"""
-    topics = Topic.objects.filter(owner=request.user).order_by('date_added')
+    if request.user.is_authenticated:
+        topics = Topic.objects.filter(owner=request.user).order_by('text') \
+                 ^ Topic.objects.filter(public=True).order_by('date_added')
+    else:
+        topics = Topic.objects.filter(public=True).order_by('date_added')
     context = {'topics': topics}
     return render(request, 'learning_logs/topics.html', context)
 
 
-@login_required
 def topic(request, topic_id):
     """Выводит одну тему и все ее записи"""
     topic = get_object_or_404(Topic, id=topic_id)
-    check_topic_owner(request, topic)
+    if not topic.public:
+        check_topic_owner(request, topic)
 
     entries = topic.entry_set.order_by('-date_added')
     context = {'topic': topic, 'entries': entries}
@@ -52,7 +55,7 @@ def new_topic(request):
 @login_required
 def new_entry(request, topic_id):
     """Добавляет новую запись к конкретной теме"""
-    topic = Topic.objects.get(id=topic_id)
+    topic = get_object_or_404(Topic, id=topic_id)
     if request.method != 'POST':
         # Данные не отправлялись, создается пустая форма
         form = EntryForm()
@@ -60,7 +63,8 @@ def new_entry(request, topic_id):
         # Отправлены данные POST, данные обрабатываются
         form = EntryForm(data=request.POST)
         if form.is_valid():
-            check_topic_owner(request, topic)
+            if not topic.public:
+                check_topic_owner(request, topic)
             new_entry = form.save(commit=False)
             new_entry.topic = topic
             new_entry.save()
@@ -74,7 +78,7 @@ def new_entry(request, topic_id):
 @login_required
 def edit_entry(request, entry_id):
     """Редактирует существующую запись"""
-    entry = Entry.objects.get(id=entry_id)
+    entry = get_object_or_404(Entry, id=entry_id)
     topic = entry.topic
     check_topic_owner(request, topic)
 
