@@ -13,8 +13,8 @@ def index(request):
 def topics(request):
     """Выводит список тем"""
     if request.user.is_authenticated:
-        topics = Topic.objects.filter(owner=request.user).order_by('text') \
-                 ^ Topic.objects.filter(public=True).order_by('date_added')
+        topics = Topic.objects.filter(owner=request.user).order_by('text'.lower()) \
+                 or Topic.objects.filter(public=True).order_by('text'.lower())
     else:
         topics = Topic.objects.filter(public=True).order_by('date_added')
     context = {'topics': topics}
